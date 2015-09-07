@@ -20,3 +20,7 @@ Simply install with pip:
 `pip install -r requirements.txt`
 
 It will also install tools for documentation generation.
+
+## Run tests
+
+`python runtests.py`
