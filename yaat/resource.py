@@ -8,16 +8,19 @@ from django.core.paginator import Paginator
 from restify.http.response import ApiResponse
 from restify.resource import ModelResource
 
+from yaat.models import Column
+
+class YaatData:
+    def __init__(self, columns, rows, pages):
+        self.column = columns
+        self.rows = rows
+        self.pages = pages
+
 
 class YaatModelResource(ModelResource):
     UNORDERED = 0
     ASC = 1
     DESC = 2
-
-    FIELDS = ()
-    DISPLAY_NAME_FOR = {}
-    PREPEND_COLS = ()
-    APPEND_COLS = ()
 
     def __init__(self, **kwargs):
         super(YaatModelResource, self).__init__(**kwargs)
@@ -49,7 +52,7 @@ class YaatModelResource(ModelResource):
         return ordering + key
 
     def get_field_verbose_name(self, key):
-        return str(self._meta.model._meta.get_field(key).verbose_name)
+        return self._meta.model._meta.get_field(key).verbose_name
 
     def get_queryset(self, order_keys=()):
         return super(YaatModelResource, self).get_queryset().order_by(*order_keys).all()
@@ -177,7 +180,35 @@ class YaatModelResource(ModelResource):
 
         return reply
 
+    def get_columns(self):
+        columns = []
+        for field in self._meta.model._meta.fields:
+            columns.append(field.name)
+        return columns
+
+    def get_column_object(self, key):
+        c = Column()
+        c.key = key
+
+        return c
+
+    def get_column_objects(self, columns):
+        columns = []
+        for i, column_name in enumerate(columns):
+            c = self.get_column_object(column_name)
+            c.order = i
+
+            columns.append(c)
+        return columns
+
     def post(self, request, *args, **kwargs):
-        post = json.loads(request.body.decode()) if request.body else None
-        data = self.yaat_data(post)
+        self.post = json.loads(request.body.decode()) if request.body else None
+
+        column_list = self.get_columns()
+        column_objects = self.get_column_objects(column_list)
+
+
+        rows = None
+        pages = None
+        data = YaatData(columns, rows, pages)
         return ApiResponse(data)
