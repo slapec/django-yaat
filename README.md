@@ -1,3 +1,14 @@
 # django-yaat
 
-This is a django-restify resource for the yaat AngularJS module.
+This is the [django-restify](https://github.com/lovasb/django-restify) resource of the 
+[yaat](https://github.com/slapec/yaat) AngularJS module.
+
+# Requirements
+
+- `Django==1.8.4`
+
+    Might work with other versions. I haven't tried.
+    
+- `django-restify`
+
+    This is the library django-yaat is built on.
