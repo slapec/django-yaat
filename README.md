@@ -12,3 +12,11 @@ This is the [django-restify](https://github.com/lovasb/django-restify) resource 
 - `django-restify`
 
     This is the library django-yaat is built on.
+    
+## Development requirements
+
+Simply install with pip:
+
+`pip install -r requirements.txt`
+
+It will also install tools for documentation generation.
