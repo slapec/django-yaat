@@ -1,0 +1,25 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.5/angular.js"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script>
+
+    <script type="text/javascript" src="{% static 'yaat_examples/yaat/js/yaat-full.js' %}"></script>
+    <link href="{% static 'yaat_examples/yaat/css/yaat.css' %}" rel="stylesheet">
+
+    <script type="text/javascript" src="{% static 'yaat_examples/apps/js/angular_setup.js' %}"></script>
+    {% block scripts %}
+    {% endblock %}
+</head>
+<body>
+    <div id="content" class="col-lg-12">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

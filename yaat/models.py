@@ -27,12 +27,27 @@ class Column(models.Model):
     ordering = models.PositiveSmallIntegerField(choices=ORDER_CHOICES, default=UNORDERED, null=True,
                                                 verbose_name=_('Field order'))
 
+    def __init__(self, key, value, *args, is_virtual=False, **kwargs):
+        self.value = value
+        self.is_virtual = is_virtual
+        super().__init__(*args, key=key, **kwargs)
+
+    def get_ordering(self):
+        if self.ordering == self.ASC:
+            return self.key
+        elif self.ordering == self.DESC:
+            return '-' + self.key
+
     def as_dict(self):
-        return {
-            'user': self.user,
-            'resource': self.resource,
-            'order': self.order,
+        data = {
             'key': self.key,
-            'is_shown': self.is_shown,
-            'ordering': self.ordering,
+            'value': self.value
         }
+
+        if self.ordering != self.ORDER_DISALLOWED:
+            data['order'] = self.ordering
+
+        if self.is_shown is not None:
+            data['hidden'] = not self.is_shown
+
+        return data

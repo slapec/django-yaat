@@ -1,0 +1,13 @@
+{% extends 'yaat_examples/base.html' %}
+
+{% load static %}
+
+{% block scripts %}
+    <script type="text/javascript" src="{% static 'yaat_examples/apps/js/model_example.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div ng-app="model_example">
+    <yat api="{% url 'api:model-example' %}" limit="7"></yat>
+</div>
+{% endblock %}

@@ -1,214 +1,98 @@
 # coding: utf-8
 
 import json
-from collections import OrderedDict
 
-from django.core.exceptions import FieldDoesNotExist
 from django.core.paginator import Paginator
 from restify.http.response import ApiResponse
-from restify.resource import ModelResource
+from restify.resource import Resource
+from restify.resource.base import ResourceMeta
+from restify.resource.model import ModelResourceOptions, ModelResourceMixin
 
-from yaat.models import Column
-
-class YaatData:
-    def __init__(self, columns, rows, pages):
-        self.column = columns
-        self.rows = rows
-        self.pages = pages
+from . import YaatData, YaatRow
+from .models import Column
+from .serializer import YaatModelResourceSerializer
 
 
-class YaatModelResource(ModelResource):
+class YaatModelResourceOptions(ModelResourceOptions):
+    serializer = YaatModelResourceSerializer
+    columns = ()
+
+
+class YaatModelResourceMeta(ResourceMeta):
+    options_class = YaatModelResourceOptions
+
+
+class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourceMeta):
     UNORDERED = 0
     ASC = 1
     DESC = 2
 
-    def __init__(self, **kwargs):
-        super(YaatModelResource, self).__init__(**kwargs)
-
-        self.PREPEND_COLS = OrderedDict(self.PREPEND_COLS)
-        self.APPEND_COLS = OrderedDict(self.APPEND_COLS)
-
-        self.VIRTUAL_COLS = self.PREPEND_COLS.copy()
-        self.VIRTUAL_COLS.update(self.APPEND_COLS)
-
-        for key, value in self.VIRTUAL_COLS.items():
-            if hasattr(self, 'handle_' + key):
-                value['handler'] = getattr(self, 'handle_' + key)
-
-    def get_model_fields(self):
-        for field in self.FIELDS:
-            try:
-                yield field, self._meta.model._meta.get_field(field).verbose_name
-            except FieldDoesNotExist:
-                if field in self.VIRTUAL_COLS:
-                    yield field, self.VIRTUAL_COLS[field]['value']
-                else:
-                    yield field, getattr(self._meta.model, field)
-
-    def get_field_ordering(self, order_obj):
-        key = order_obj['key']
-        order = order_obj['order']
-        ordering = '-' if order == self.DESC else ''
-        return ordering + key
-
-    def get_field_verbose_name(self, key):
-        return self._meta.model._meta.get_field(key).verbose_name
-
-    def get_queryset(self, order_keys=()):
-        return super(YaatModelResource, self).get_queryset().order_by(*order_keys).all()
-
-    def yaat_data(self, post):
-        reply = {
-            'columns': [],
-            'rows': [],
-            'pages': {
-                'current': 1,
-                'list': []
-            }
-        }
-
-        # Create header row ----------------------------------------------------
-        cell_order = []
-        order_keys = []
-        if 'headers' in post:
-            # Structure used to reply paging, sorting, hiding ------------------
-            columns = reply['columns']
-            for header in post['headers']:
-                key = header['key']
-                # Skip processing prepend and append columns
-                if key in self.VIRTUAL_COLS:
-                    columns.append({
-                        'key': key,
-                        'value': self.VIRTUAL_COLS[key]['value']
-                    })
-                    cell_order.append(key)
-                else:
-                    column = {
-                        'key': key,
-                        'value': self.get_field_verbose_name(key)
-                    }
-                    columns.append(column)
-
-                    if not header.get('hidden'):
-                        cell_order.append(key)
-                    else:
-                        column['hidden'] = header['hidden']
-
-                    if header.get('order') is not None:
-                        column['order'] = header['order']
-                        if header['order'] in {self.ASC, self.DESC}:
-                            order_keys.append(self.get_field_ordering(header))
-        else:
-            # Structure used to initialize the table ---------------------------
-            columns = reply['columns']
-
-            # Prepend columns
-            for key, value in self.PREPEND_COLS.items():
-                cell_order.append(key)
-                columns.append({
-                    'key': key,
-                    'value': value['value']
-                })
-
-            # Adding real columns
-            for key, value in self.get_model_fields():
-                cell_order.append(key)
-                columns.append({
-                    'key': key,
-                    'value': str(value),
-                    'order': self.UNORDERED
-                })
-
-            # Append columns
-            for key, value in self.APPEND_COLS.items():
-                cell_order.append(key)
-                columns.append({
-                    'key': key,
-                    'value': value['value']
-                })
-
-        # Collecting rows ------------------------------------------------------
-        limit = int(post['limit'])
-        offset = 1 if post['offset'] is None else int(post['offset'])
-
-        qs = self.get_queryset(order_keys)
-        paginator = Paginator(qs, limit)
-        page = paginator.page(offset)
-        rows = reply['rows']
-        for obj in page:
-            row_values = []
-            rows.append({
-                'id': obj.pk,
-                'values': row_values
-            })
-            for column_name in cell_order:
-                if column_name in self.VIRTUAL_COLS:
-                    handler = self.VIRTUAL_COLS[column_name]['handler']
-                    value = handler(obj)
-                else:
-                    if column_name in self.DISPLAY_NAME_FOR:
-                        value = getattr(obj, 'get_' + column_name + '_display')()
-                    else:
-                        value = getattr(obj, column_name)
-                    value = str(value)
-                row_values.append(value)
-
-        # Paging ---------------------------------------------------------------
-        previous = None
-        if page.has_previous():
-            number = page.previous_page_number()
-            previous = {
-                'key': number,
-                'value': number
-            }
-        reply['pages']['list'].append(previous)
-
-        # Current page must be at index #1
-        reply['pages']['list'].append({
-            'key': offset,
-            'value': offset
-        })
-
-        next = None
-        if page.has_next():
-            number = page.next_page_number()
-            next = {
-                'key': number,
-                'value': number
-            }
-        reply['pages']['list'].append(next)
-
-        return reply
-
     def get_columns(self):
         columns = []
-        for field in self._meta.model._meta.fields:
-            columns.append(field.name)
+        for c in self._meta.columns:
+            if isinstance(c, str):
+                field = self._meta.model._meta.get_field(c)
+                column = Column(field.name, field.verbose_name, resource=self._meta.resource_name)
+                columns.append(column)
+            elif isinstance(c, Column):
+                c.resource = self._meta.resource_name
+                columns.append(c)
+            else:
+                raise TypeError('Column item is expected to be string or Column')
         return columns
 
-    def get_column_object(self, key):
-        c = Column()
-        c.key = key
+    def get_queryset_order_keys(self, columns):
+        keys = []
+        for column in columns:
+            ordering = column.get_ordering()
+            if ordering:
+                keys.append(ordering)
+        return keys
 
-        return c
+    def get_queryset(self, columns):
+        order_keys = self.get_queryset_order_keys(columns)
+        return super().get_queryset().order_by(*order_keys).all()
 
-    def get_column_objects(self, columns):
-        columns = []
-        for i, column_name in enumerate(columns):
-            c = self.get_column_object(column_name)
-            c.order = i
+    def get_page(self, qs, limit, page_number):
+        if not page_number:
+            page_number = 1
+        paginator = Paginator(qs, limit)
+        return paginator.page(page_number)
 
-            columns.append(c)
+    def get_rows(self, page, cols):
+        rows = []
+        for obj in page:
+            cells = []
+            for col in cols:
+                if col.is_shown:
+                    value = getattr(obj, col.key)
+                    cells.append(value)
+            rows.append(YaatRow(obj.pk, cells))
+        return rows
+
+    def apply_column_states(self, states, columns):
+        if states:
+            # TODO: Add validating here
+            column_map = {_.key: _ for _ in columns}
+
+            columns = []
+            for state in states:
+                column = column_map[state['key']]
+                columns.append(column)
+
+                column.ordering = state['order']
+                column.is_shown = not state['hidden']
         return columns
 
     def post(self, request, *args, **kwargs):
-        self.post = json.loads(request.body.decode()) if request.body else None
+        post = json.loads(request.body.decode())
 
-        column_list = self.get_columns()
-        column_objects = self.get_column_objects(column_list)
+        # TODO: yaat is inconsistent of expecting 'columns' but replying with 'headers'
+        columns = self.apply_column_states(post.get('headers', None), self.get_columns())
 
+        queryset = self.get_queryset(columns)
+        page = self.get_page(queryset, post['limit'], post['offset'])
+        rows = self.get_rows(page, columns)
 
-        rows = None
-        pages = None
-        data = YaatData(columns, rows, pages)
+        data = YaatData(columns, rows, page)
         return ApiResponse(data)
