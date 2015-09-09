@@ -2,14 +2,14 @@
 
 from restify.serializers import BaseSerializer
 
-from . import YaatData
+from .types import YaatData
 
 
 class YaatModelResourceSerializer(BaseSerializer):
+    # TODO: Split serialization
     def flatten(self, data):
         if isinstance(data, YaatData):
             reply = {
-                # Columns ------------------------------------------------------
                 'columns': [],
                 'rows': [],
                 'pages': {
@@ -18,10 +18,12 @@ class YaatModelResourceSerializer(BaseSerializer):
                 }
             }
 
+            # Columns ----------------------------------------------------------
             visible_columns = 0
             for column in data.columns:
                 reply['columns'].append(column.as_dict())
-                visible_columns += 1
+                if column.is_shown:
+                    visible_columns += 1
 
             # Rows -------------------------------------------------------------
             for row in data.rows:

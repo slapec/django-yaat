@@ -15,13 +15,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Column',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False, verbose_name='ID', auto_created=True)),
-                ('resource', models.CharField(verbose_name='Resource name', max_length=64)),
-                ('order', models.PositiveIntegerField(verbose_name='Column order')),
-                ('key', models.CharField(verbose_name='Column key', max_length=64)),
-                ('is_shown', models.NullBooleanField(default=True, verbose_name='Show field')),
-                ('ordering', models.PositiveSmallIntegerField(choices=[(None, 'Ordering disallowed'), (0, 'Unordered'), (1, 'Ascending'), (2, 'Descending')], default=0, null=True, verbose_name='Field order')),
-                ('user', models.ForeignKey(verbose_name='User', to=settings.AUTH_USER_MODEL)),
+                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('order', models.PositiveIntegerField(db_index=True, editable=False)),
+                ('resource', models.CharField(max_length=64, verbose_name='Resource name')),
+                ('key', models.CharField(max_length=64, verbose_name='Column key')),
+                ('is_shown', models.NullBooleanField(verbose_name='Show field', default=True)),
+                ('ordering', models.PositiveSmallIntegerField(null=True, choices=[(None, 'Ordering disallowed'), (0, 'Unordered'), (1, 'Ascending'), (2, 'Descending')], verbose_name='Field order', default=0)),
+                ('user', models.ForeignKey(related_name='column_users', to=settings.AUTH_USER_MODEL, verbose_name='User')),
             ],
+        ),
+        migrations.AlterUniqueTogether(
+            name='column',
+            unique_together=set([('resource', 'user', 'key')]),
         ),
     ]

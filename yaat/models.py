@@ -3,13 +3,16 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from ordered_model.models import OrderedModel
 
 
-class Column(models.Model):
+class Column(OrderedModel):
     ORDER_DISALLOWED = None
     UNORDERED = 0
     ASC = 1
     DESC = 2
+
+    HIDE_DISALLOWED = None
 
     ORDER_CHOICES = (
         (ORDER_DISALLOWED, _('Ordering disallowed')),
@@ -18,19 +21,26 @@ class Column(models.Model):
         (DESC, _('Descending'))
     )
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'))
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), related_name='column_users')
 
     resource = models.CharField(max_length=64, verbose_name=_('Resource name'))
-    order = models.PositiveIntegerField(verbose_name=_('Column order'))
     key = models.CharField(max_length=64, verbose_name=_('Column key'))
     is_shown = models.NullBooleanField(default=True, verbose_name=_('Show field'))
     ordering = models.PositiveSmallIntegerField(choices=ORDER_CHOICES, default=UNORDERED, null=True,
                                                 verbose_name=_('Field order'))
 
-    def __init__(self, key, value, *args, is_virtual=False, **kwargs):
+    order_with_respect_to = ('resource', 'user')
+
+    class Meta:
+        unique_together = ('resource', 'user', 'key')
+
+    def __init__(self, key, value, *args, is_virtual=True, **kwargs):
         self.value = value
         self.is_virtual = is_virtual
         super().__init__(*args, key=key, **kwargs)
+
+        if self.is_virtual:
+            self.ordering = self.ORDER_DISALLOWED
 
     def get_ordering(self):
         if self.ordering == self.ASC:
@@ -41,7 +51,7 @@ class Column(models.Model):
     def as_dict(self):
         data = {
             'key': self.key,
-            'value': self.value
+            'value': str(self.value)
         }
 
         if self.ordering != self.ORDER_DISALLOWED:

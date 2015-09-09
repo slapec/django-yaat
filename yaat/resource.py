@@ -5,34 +5,21 @@ import json
 from django.core.paginator import Paginator
 from restify.http.response import ApiResponse
 from restify.resource import Resource
-from restify.resource.base import ResourceMeta
-from restify.resource.model import ModelResourceOptions, ModelResourceMixin
 
-from . import YaatData, YaatRow
+from restify.resource.model import ModelResourceMixin
+
+from .types import YaatData, YaatRow
 from .models import Column
-from .serializer import YaatModelResourceSerializer
-
-
-class YaatModelResourceOptions(ModelResourceOptions):
-    serializer = YaatModelResourceSerializer
-    columns = ()
-
-
-class YaatModelResourceMeta(ResourceMeta):
-    options_class = YaatModelResourceOptions
+from .meta import YaatModelResourceMeta
 
 
 class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourceMeta):
-    UNORDERED = 0
-    ASC = 1
-    DESC = 2
-
     def get_columns(self):
         columns = []
         for c in self._meta.columns:
             if isinstance(c, str):
                 field = self._meta.model._meta.get_field(c)
-                column = Column(field.name, field.verbose_name, resource=self._meta.resource_name)
+                column = Column(field.name, field.verbose_name, resource=self._meta.resource_name, is_virtual=False)
                 columns.append(column)
             elif isinstance(c, Column):
                 c.resource = self._meta.resource_name
@@ -80,8 +67,11 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
                 column = column_map[state['key']]
                 columns.append(column)
 
-                column.ordering = state['order']
-                column.is_shown = not state['hidden']
+                if column.ordering != Column.ORDER_DISALLOWED:
+                    column.ordering = state['order']
+
+                if column.is_shown != Column.HIDE_DISALLOWED:
+                    column.is_shown = not state['hidden']
         return columns
 
     def post(self, request, *args, **kwargs):

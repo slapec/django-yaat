@@ -1,1 +1,0 @@
-angular.module('model_example', ['yaat_examples']);
