@@ -1,6 +1,6 @@
 # django-yaat
 
-This is the [django-restify](https://github.com/lovasb/django-restify) resource of the 
+This is the [django-restify-framework](https://github.com/lovasb/django-restify) resource of the 
 [yaat](https://github.com/slapec/yaat) AngularJS module.
 
 # Requirements
@@ -11,7 +11,7 @@ This module is developed in Python 3.4.2. Backwards compatibility is not guarant
 
     Might work with older versions. I haven't tried.
     
-- `django-restify`
+- `django-restify-framework==0.22`
 
     This is the library django-yaat is built on.
     

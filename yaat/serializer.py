@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from django import forms
 from restify.serializers import BaseSerializer
 
 from .types import YaatData
@@ -62,3 +63,6 @@ class YaatModelResourceSerializer(BaseSerializer):
                 }
             reply['pages']['list'].append(next)
             return reply
+        elif isinstance(data, forms.Form):
+            if not (data.is_valid() or not data.is_bound):
+                return {key: list(value) for key, value in data.errors.items()}
