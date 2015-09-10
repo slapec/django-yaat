@@ -15,18 +15,18 @@ class HeadersField(forms.Field):
             try:
                 return json.loads(value)
             except ValueError:
-                raise forms.ValidationError("Enter valid JSON")
+                raise forms.ValidationError('Enter valid JSON')
         return value
 
 
 class YaatValidatorForm(forms.Form):
-    limit = forms.IntegerField(min_value=0)
-    offset = forms.IntegerField(min_value=0, required=False)
+    limit = forms.IntegerField(min_value=0, initial=10)
+    offset = forms.IntegerField(min_value=0, initial=1)
     headers = HeadersField(required=False)
 
     def __init__(self, *args, columns, **kwargs):
         self.columns = columns
-        self._column_fields = {self.columns[i].key: i for i in range(0, len(self.columns))}
+        self._column_fields = {column.key: i for i, column in enumerate(self.columns)}
 
         super().__init__(*args, **kwargs)
 
@@ -35,21 +35,42 @@ class YaatValidatorForm(forms.Form):
         retval.pk = None
         return retval
 
+    def full_clean(self):
+        super().full_clean()
+
+        if 'limit' in self._errors.keys():
+            self.cleaned_data['limit'] = self.fields['limit'].initial
+            del self._errors['limit']
+
+        if 'offset' in self._errors.keys():
+            self.cleaned_data['offset'] = self.fields['offset'].initial
+            del self._errors['offset']
+
+        if 'headers' in self._errors.keys():
+            self.cleaned_data['headers'] = self.columns
+            del self._errors['headers']
+
     def clean_headers(self):
         posted = self.cleaned_data['headers']
 
-        if not posted:  # posted headers is None
-            return self.columns
-
         headers = []
-        for head in posted:
-            try:
-                col = self._get_column(head['key'])
-                col.ordering = head['order']
-                col.is_shown = not head['hidden']
-                headers.append(col)
-            except KeyError:
-                pass
+
+        try:
+            for head in posted:
+                try:
+                    # TODO: Add validaton here
+                    col = self._get_column(head['key'])
+                    headers.append(col)
+
+                    if col.ordering != Column.ORDER_DISALLOWED:
+                        col.ordering = head['order']
+
+                    if col.is_shown != Column.HIDE_DISALLOWED:
+                        col.is_shown = not head['hidden']
+                except KeyError:
+                    raise forms.ValidationError('')
+        except TypeError: # None type is not iterable (posted data is None)
+            raise forms.ValidationError('')
 
         return headers
 
