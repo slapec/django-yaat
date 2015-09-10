@@ -1,21 +1,25 @@
 # django-yaat
 
-This is the [django-restify](https://github.com/lovasb/django-restify) resource of the 
+This is the [django-restify-framework](https://github.com/lovasb/django-restify) resource of the 
 [yaat](https://github.com/slapec/yaat) AngularJS module.
 
 # Requirements
 
-- `Django==1.8.4`
+This module is developed in Python 3.4.2. Backwards compatibility is not guaranteed (tests are welcome).
 
-    Might work with other versions. I haven't tried.
+- `Django>=1.8.4`
+
+    Might work with older versions. I haven't tried.
     
-- `django-restify`
+- `django-restify-framework==0.22`
 
     This is the library django-yaat is built on.
     
-## Development requirements
+- `django-ordered-model`
 
-Simply install with pip:
+    This is required to store the order of columns of each resource (if the resource is statefull).
+    
+## Development requirements
 
 `pip install -r requirements.txt`
 

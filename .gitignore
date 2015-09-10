@@ -58,5 +58,7 @@ docs/_build/
 # PyBuilder
 target/
 
+*.sqlite3
+
 # Created by .ignore support plugin (hsz.mobi)
 .idea
