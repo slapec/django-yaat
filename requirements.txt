@@ -1,6 +1,6 @@
 Django==1.8.4
+django-restify-framework==0.23
+-e git+https://github.com/lovasb/django-ordered-model#egg=django-ordered-model
+
 Sphinx==1.3.1
 sphinx-rtd-theme==0.1.8
-
--e git+https://github.com/lovasb/django-restify#egg=django-restify
--e git+https://github.com/lovasb/django-ordered-model#egg=django-ordered-model

@@ -42,13 +42,19 @@ class Column(OrderedModel):
         if self.is_virtual:
             self.ordering = self.ORDER_DISALLOWED
 
+    def __eq__(self, other):
+        left = [self.user_id, self.resource, self.key, self.order, self.is_shown, self.ordering]
+        right = [other.user_id, other.resource, other.key, other.order, other.is_shown, other.ordering]
+
+        return left == right
+
     def get_ordering(self):
         if self.ordering == self.ASC:
             return self.key
         elif self.ordering == self.DESC:
             return '-' + self.key
 
-    def as_dict(self):
+    def flatten(self):
         data = {
             'key': self.key,
             'value': str(self.value)
