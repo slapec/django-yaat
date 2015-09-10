@@ -2,13 +2,13 @@
 
 from restify.resource.model import ModelResourceOptions
 from restify.resource.base import ResourceMeta
-
-from .serializer import YaatModelResourceSerializer
+from restify.serializers import DjangoSerializer
 
 
 class YaatModelResourceOptions(ModelResourceOptions):
-    serializer = YaatModelResourceSerializer
+    serializer = DjangoSerializer
     columns = ()
+    stateful = False
 
 
 class YaatModelResourceMeta(ResourceMeta):

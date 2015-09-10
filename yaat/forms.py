@@ -4,8 +4,8 @@ import json
 from copy import deepcopy
 
 import six
+from django.core.exceptions import ValidationError
 from django import forms
-from django.utils.translation import ugettext_lazy as _
 
 from .models import Column
 
@@ -16,7 +16,7 @@ class HeadersField(forms.Field):
             try:
                 return json.loads(value)
             except ValueError:
-                raise forms.ValidationError(_('Enter valid JSON'))
+                raise forms.ValidationError('Enter valid JSON')
         return value
 
 
@@ -32,25 +32,30 @@ class YaatValidatorForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def _get_column(self, name):
-        return self.columns[self._column_fields[name]]
+        return deepcopy(self.columns[self._column_fields[name]])
 
     def clean_headers(self):
         posted = self.cleaned_data['headers']
 
-        headers = deepcopy(self.columns)
         if not posted:  # posted headers is None
-            return headers
+            return self.columns
 
         headers = []
         for head in posted:
             try:
+                # TODO: Add validaton here
                 col = self._get_column(head['key'])
+                headers.append(col)
+
                 if col.ordering != Column.ORDER_DISALLOWED:
                     col.ordering = head['order']
+
                 if col.is_shown != Column.HIDE_DISALLOWED:
                     col.is_shown = not head['hidden']
-                headers.append(col)
             except KeyError:
                 pass
 
         return headers
+
+    def save(self):
+        print(self.columns == self.cleaned_data['headers'])
