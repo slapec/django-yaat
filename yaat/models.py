@@ -28,16 +28,16 @@ class Column(OrderedModel):
     is_shown = models.NullBooleanField(default=True, verbose_name=_('Show field'))
     ordering = models.PositiveSmallIntegerField(choices=ORDER_CHOICES, default=UNORDERED, null=True,
                                                 verbose_name=_('Field order'))
+    is_virtual = models.BooleanField(default=True)
 
     order_with_respect_to = ('resource', 'user')
 
     class Meta:
         unique_together = ('resource', 'user', 'key')
 
-    def __init__(self, key, value, *args, is_virtual=True, **kwargs):
-        self.value = value
-        self.is_virtual = is_virtual
-        super().__init__(*args, key=key, **kwargs)
+    def __init__(self, *args, **kwargs):
+        self.value = kwargs.pop('value', None)
+        super().__init__(*args, **kwargs)
 
         if self.is_virtual:
             self.ordering = self.ORDER_DISALLOWED

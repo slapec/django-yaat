@@ -4,6 +4,7 @@ import six
 from copy import deepcopy
 
 from django import forms
+from django.db import transaction
 
 from yaat.models import Column
 
@@ -30,7 +31,9 @@ class YaatValidatorForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def _get_column(self, name):
-        return deepcopy(self.columns[self._column_fields[name]])
+        retval = deepcopy(self.columns[self._column_fields[name]])
+        retval.pk = None
+        return retval
 
     def clean_headers(self):
         posted = self.cleaned_data['headers']
@@ -51,4 +54,14 @@ class YaatValidatorForm(forms.Form):
         return headers
 
     def save(self):
-        print(self.columns == self.cleaned_data['headers'])
+        if self.columns == self.cleaned_data['headers']:
+            return
+
+        for i in range(0, len(self.cleaned_data['headers'])):
+            self.cleaned_data['headers'][i].order = i + 1
+            self.cleaned_data['headers'][i].user = user
+
+        with transaction.atomic():
+            col = self.cleaned_data['headers'][0]
+            Column.objects.filter(user_id=col.user_id, resource=col.resource).delete()
+            Column.objects.bulk_create(self.cleaned_data['headers'])

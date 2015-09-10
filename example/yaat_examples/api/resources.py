@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.contrib.auth.models import User
 
 from yaat.resource import YaatModelResource
 
@@ -13,13 +14,24 @@ class ModelExampleResource(YaatModelResource):
         columns = ('name', 'quantity', 'price')
         stateful = True
 
+    def common(self, request, *args, **kwargs):
+        usr, _ = User.objects.get_or_create(username='user')
+        request.user = usr
+        super().common(request, *args, **kwargs)
+
 
 class ModelComputedExampleResource(YaatModelResource):
     class Meta:
         resource_name = 'model-computed-example'
         model = SmartItem
         columns = (
-            Column('get_owner', 'Owner'),
+            Column(key='get_owner', value='Owner'),
             'name', 'quantity', 'price',
-            Column('get_total_price', 'Total price')
+            Column(key='get_total_price', value='Total price')
         )
+        stateful = True
+
+    def common(self, request, *args, **kwargs):
+        usr, _ = User.objects.get_or_create(username='user')
+        request.user = usr
+        super().common(request, *args, **kwargs )
