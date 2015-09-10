@@ -1,13 +1,13 @@
 # coding: utf-8
 
 import json
+import six
 from copy import deepcopy
 
-import six
 from django.core.exceptions import ValidationError
 from django import forms
 
-from .models import Column
+from yaat.models import Column
 
 
 class HeadersField(forms.Field):
@@ -21,8 +21,8 @@ class HeadersField(forms.Field):
 
 
 class YaatValidatorForm(forms.Form):
-    limit = forms.IntegerField(min_value=0)
-    offset = forms.CharField(required=False)
+    limit = forms.IntegerField(min_value=0, initial=10)
+    offset = forms.IntegerField(min_value=0, initial=1)
     headers = HeadersField(required=False)
 
     def __init__(self, *args, columns, **kwargs):
@@ -34,26 +34,42 @@ class YaatValidatorForm(forms.Form):
     def _get_column(self, name):
         return deepcopy(self.columns[self._column_fields[name]])
 
+    def full_clean(self):
+        super().full_clean()
+
+        if 'limit' in self._errors.keys():
+            self.cleaned_data['limit'] = self.fields['limit'].initial
+            del self._errors['limit']
+
+        if 'offset' in self._errors.keys():
+            self.cleaned_data['offset'] = self.fields['offset'].initial
+            del self._errors['offset']
+
+        if 'headers' in self._errors.keys():
+            self.cleaned_data['headers'] = self.columns
+            del self._errors['headers']
+
     def clean_headers(self):
         posted = self.cleaned_data['headers']
 
-        if not posted:  # posted headers is None
-            return self.columns
-
         headers = []
-        for head in posted:
-            try:
-                # TODO: Add validaton here
-                col = self._get_column(head['key'])
-                headers.append(col)
 
-                if col.ordering != Column.ORDER_DISALLOWED:
-                    col.ordering = head['order']
+        try:
+            for head in posted:
+                try:
+                    # TODO: Add validaton here
+                    col = self._get_column(head['key'])
+                    headers.append(col)
 
-                if col.is_shown != Column.HIDE_DISALLOWED:
-                    col.is_shown = not head['hidden']
-            except KeyError:
-                pass
+                    if col.ordering != Column.ORDER_DISALLOWED:
+                        col.ordering = head['order']
+
+                    if col.is_shown != Column.HIDE_DISALLOWED:
+                        col.is_shown = not head['hidden']
+                except KeyError:
+                    raise forms.ValidationError('')
+        except TypeError: # None type is not iterable (posted data is None)
+            raise forms.ValidationError('')
 
         return headers
 

@@ -34,8 +34,8 @@ class Column(OrderedModel):
     class Meta:
         unique_together = ('resource', 'user', 'key')
 
-    def __init__(self, key, value, *args, is_virtual=True, **kwargs):
-        self.value = value
+    def __init__(self, key, *args, is_virtual=True, **kwargs):
+        self.value = kwargs.pop('value', None)
         self.is_virtual = is_virtual
         super().__init__(*args, key=key, **kwargs)
 
