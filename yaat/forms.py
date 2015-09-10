@@ -1,11 +1,13 @@
 # coding: utf-8
+
 import json
-import six
-
 from copy import deepcopy
-from django import forms
 
-from yaat.models import Column
+import six
+from django import forms
+from django.utils.translation import ugettext_lazy as _
+
+from .models import Column
 
 
 class HeadersField(forms.Field):
@@ -14,18 +16,18 @@ class HeadersField(forms.Field):
             try:
                 return json.loads(value)
             except ValueError:
-                raise forms.ValidationError(_("Enter valid JSON"))
+                raise forms.ValidationError(_('Enter valid JSON'))
         return value
 
 
 class YaatValidatorForm(forms.Form):
     limit = forms.IntegerField(min_value=0)
-    offset = forms.IntegerField(min_value=0, required=False)
+    offset = forms.CharField(required=False)
     headers = HeadersField(required=False)
 
     def __init__(self, *args, columns, **kwargs):
         self.columns = columns
-        self._column_fields = {self.columns[i].key: i for i in range(0, len(self.columns))}
+        self._column_fields = {column.key: i for i, column in enumerate(self.columns)}
 
         super().__init__(*args, **kwargs)
 
@@ -36,15 +38,17 @@ class YaatValidatorForm(forms.Form):
         posted = self.cleaned_data['headers']
 
         headers = deepcopy(self.columns)
-        if not posted: # posted headers is None
+        if not posted:  # posted headers is None
             return headers
 
         headers = []
         for head in posted:
             try:
                 col = self._get_column(head['key'])
-                col.ordering = head['order']
-                col.is_shown = not head['hidden']
+                if col.ordering != Column.ORDER_DISALLOWED:
+                    col.ordering = head['order']
+                if col.is_shown != Column.HIDE_DISALLOWED:
+                    col.is_shown = not head['hidden']
                 headers.append(col)
             except KeyError:
                 pass
