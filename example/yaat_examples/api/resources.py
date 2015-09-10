@@ -11,6 +11,7 @@ class ModelExampleResource(YaatModelResource):
         resource_name = 'model-example'
         model = Item
         columns = ('name', 'quantity', 'price')
+        stateful = True
 
 
 class ModelComputedExampleResource(YaatModelResource):

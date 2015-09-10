@@ -9,7 +9,6 @@ from restify.resource.model import ModelResourceMixin
 from .forms import YaatValidatorForm
 from .meta import YaatModelResourceMeta
 from .models import Column
-from .types import YaatData, YaatRow
 
 
 class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourceMeta):
@@ -64,6 +63,9 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
             queryset = self.get_queryset(form.cleaned_data['headers'])
             page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
             rows = self.get_rows(page, form.cleaned_data['headers'])
+
+            if self._meta.stateful:
+                form.save()
 
             return ApiResponse({'columns': form.cleaned_data['headers'],
                                 'rows': rows,
