@@ -11,7 +11,7 @@ setup(
     name='django-yaat',
     version='0.1.0',
     packages=['yaat'],
-    install_requires=['Django>=1.8.4', 'django-restify-framework==0.22', 'django-ordered-model'],
+    install_requires=['Django>=1.8.4', 'django-restify-framework==0.23', 'django-ordered-model'],
     dependency_links=vcs_dependencies,
     description='The django-restify-framework resource of the yaat AngularJs module',
     author='Slapec',

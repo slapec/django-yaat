@@ -1,68 +1,48 @@
 # coding: utf-8
 
 from django import forms
-from restify.serializers import BaseSerializer
+from django.core.paginator import Page
+from restify.serializers import DjangoSerializer
 
 from .types import YaatData
 
 
-class YaatModelResourceSerializer(BaseSerializer):
+class YaatModelResourceSerializer(DjangoSerializer):
+    pass
+
+    """
     # TODO: Split serialization
     def flatten(self, data):
-        if isinstance(data, YaatData):
-            reply = {
-                'columns': [],
-                'rows': [],
-                'pages': {
-                    'current': 1,
-                    'list': []
-                }
+        if isinstance(data, Page):
+            retval = {
+                'current': 1,
+                'list': []
             }
 
-            # Columns ----------------------------------------------------------
-            visible_columns = 0
-            for column in data.columns:
-                reply['columns'].append(column.as_dict())
-                if column.is_shown:
-                    visible_columns += 1
-
-            # Rows -------------------------------------------------------------
-            for row in data.rows:
-                if len(row.cells) != visible_columns:
-                    raise ValueError('Row cell count differs from visible column count.')
-                reply['rows'].append({
-                    'id': row.id,
-                    'values': row.cells
-                })
-
-            # Paging -----------------------------------------------------------
-            # TODO: Paging is not so dynamic
-            page = data.page
-
             previous = None
-            if data.page.has_previous():
-                number = page.previous_page_number()
+            if data.has_previous():
+                number = data.previous_page_number()
                 previous = {
                     'key': number,
                     'value': number
                 }
-            reply['pages']['list'].append(previous)
+            retval['list'].append(previous)
 
             # Current page must be at index #1 (because reply['pages']['current'] is initialized to 1)
-            reply['pages']['list'].append({
-                'key': page.number,
-                'value': page.number
+            retval['list'].append({
+                'key': data.number,
+                'value': data.number
             })
 
             next = None
-            if page.has_next():
-                number = page.next_page_number()
+            if data.has_next():
+                number = data.next_page_number()
                 next = {
                     'key': number,
                     'value': number
                 }
-            reply['pages']['list'].append(next)
-            return reply
-        elif isinstance(data, forms.Form):
-            if not (data.is_valid() or not data.is_bound):
-                return {key: list(value) for key, value in data.errors.items()}
+            retval['list'].append(next)
+            return retval
+        else:
+            data = super().flatten(data)
+            return data"""

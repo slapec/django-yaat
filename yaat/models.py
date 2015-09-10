@@ -48,7 +48,7 @@ class Column(OrderedModel):
         elif self.ordering == self.DESC:
             return '-' + self.key
 
-    def as_dict(self):
+    def flatten(self):
         data = {
             'key': self.key,
             'value': str(self.value)

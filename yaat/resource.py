@@ -33,6 +33,7 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
             ordering = column.get_ordering()
             if ordering:
                 keys.append(ordering)
+
         return keys
 
     def get_queryset(self, columns):
@@ -53,17 +54,19 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
                 if col.is_shown:
                     value = getattr(obj, col.key)
                     cells.append(value)
-            rows.append(YaatRow(obj.pk, cells))
+            rows.append({'id': obj.pk, 'values': cells})
         return rows
 
     def post(self, request, *args, **kwargs):
-        columns = self.get_columns()
-        form = YaatValidatorForm(request.POST, columns=columns)
+        available_columns = self.get_columns()
+        form = YaatValidatorForm(request.POST, columns=available_columns)
         if form.is_valid():
-            queryset = self.get_queryset(columns)
+            queryset = self.get_queryset(form.cleaned_data['headers'])
             page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
-            rows = self.get_rows(page, columns)
-            data = YaatData(columns, rows, page)
-            return ApiResponse(data)
+            rows = self.get_rows(page, form.cleaned_data['headers'])
+
+            return ApiResponse({'columns': form.cleaned_data['headers'],
+                                'rows': rows,
+                                'pages': page})
         else:
             return ApiResponse(form, status_code=status.HTTP_400_BAD_REQUEST)
