@@ -24,3 +24,7 @@ This module is developed in Python 3.4.2. Backwards compatibility is not guarant
 `pip install -r requirements.txt`
 
 It will also install tools for documentation generation.
+
+## Run tests
+
+`python runtests.py`

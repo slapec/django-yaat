@@ -18,4 +18,5 @@ setup(
     url='https://github.com/slapec/django-yaat',
     license='MIT',
     zip_safe=True,
+    install_requires = ['django-restify'],
 )
