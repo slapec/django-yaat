@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from django.core.paginator import Paginator
+from django.contrib.auth.models import AnonymousUser
 from restify.http import status
 from restify.http.response import ApiResponse
 from restify.resource import Resource
@@ -13,18 +14,32 @@ from .models import Column
 
 class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourceMeta):
     def get_columns(self):
-        columns = []
+        stateful_columns, columns = [], []
+        if self._meta.stateful and not isinstance(self.request.user, AnonymousUser):
+            stateful_columns = list(Column.objects.filter(resource=self._meta.resource_name, user=self.request.user)\
+                                                  .order_by('order'))
+
+        mapper = {}
         for c in self._meta.columns:
             if isinstance(c, str):
                 field = self._meta.model._meta.get_field(c)
-                column = Column(field.name, field.verbose_name, resource=self._meta.resource_name, is_virtual=False)
+                column = Column(key=field.name,
+                                value=field.verbose_name,
+                                resource=self._meta.resource_name,
+                                is_virtual=False)
                 columns.append(column)
+                mapper[column.key] = len(columns)
             elif isinstance(c, Column):
                 c.resource = self._meta.resource_name
                 columns.append(c)
+                mapper[c.key] = len(columns)
             else:
                 raise TypeError('Column item is expected to be string or Column')
-        return columns
+
+        for col in stateful_columns:
+            col.value = columns[mapper[col.key] - 1].value
+
+        return stateful_columns or columns
 
     def get_queryset_order_keys(self, columns):
         keys = []
@@ -64,8 +79,8 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
             page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
             rows = self.get_rows(page, form.cleaned_data['headers'])
 
-            if self._meta.stateful:
-                form.save()
+            if self._meta.stateful and not isinstance(request.user, AnonymousUser):
+                form.save(request.user)
 
             return ApiResponse({'columns': form.cleaned_data['headers'],
                                 'rows': rows,
