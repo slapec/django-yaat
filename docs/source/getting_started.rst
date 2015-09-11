@@ -35,10 +35,15 @@ too.
 meta attributes. In the above example ``resource_name`` and ``model`` are inherited, but ``columns`` is yaat-only.
 
 Column list is always required (like Django forms require to specify either ``fields`` or ``exclude``). Here you can
-list any names that are fields of the Item model (listed in ``Item._meta.fields``) or you can add ``Column`` objects
+list any names that are fields of the ``Item`` model (listed in ``Item._meta.fields``) or you can add ``Column`` objects
 too.
 
-That's it, the resource is ready. Now you have to register it as a ``restify`` API endopoint.
+That's it, the resource is ready. Now you have to register it as a restify-framework API endopoint.
+
+.. note::
+
+    It is a good idea to create a Python module named ``api`` inside the Django application which has restify-framework
+    resources. Put resources in ``api/resources.py`` and custom serializers in ``api/serializers.py``.
 
 Registering the API endpoint
 ----------------------------

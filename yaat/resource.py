@@ -47,26 +47,25 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
             ordering = column.get_ordering()
             if ordering:
                 keys.append(ordering)
-
         return keys
 
     def get_queryset(self, columns):
         order_keys = self.get_queryset_order_keys(columns)
         return super().get_queryset().order_by(*order_keys).all()
 
-    def get_page(self, qs, limit, page_number):
-        if not page_number:
-            page_number = 1
+    def get_page(self, qs, limit, page_number=1):
         paginator = Paginator(qs, limit)
         return paginator.page(page_number)
 
-    def get_rows(self, page, cols):
+    def get_rows(self, page, cols, **kwargs):
         rows = []
         for obj in page:
             cells = []
             for col in cols:
                 if col.is_shown:
                     value = getattr(obj, col.key)
+                    if hasattr(value, '__call__'):
+                        value = value(**kwargs)
                     cells.append(value)
             rows.append({'id': obj.pk, 'values': cells})
         return rows

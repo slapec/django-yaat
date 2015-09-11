@@ -36,7 +36,7 @@ class Column(OrderedModel):
         unique_together = ('resource', 'user', 'key')
 
     def __init__(self, *args, **kwargs):
-        self.value = kwargs.pop('value', None)
+        self.value = kwargs.pop('value')
         super().__init__(*args, **kwargs)
 
         if self.is_virtual:

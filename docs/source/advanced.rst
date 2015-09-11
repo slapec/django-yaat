@@ -4,10 +4,10 @@ Advanced resources
 Custom columns
 --------------
 
-In the meta class of the resource you can list either strings or ``Column`` objects under the ``columns`` property. String
-keys must always match a field of the model. ``Column`` keys however are free to have any values. ``Column`` objects
-have the property ``key`` which is going to be used for model property lookup. This is very useful to send values
-of related models or computed values in the ``POST``.
+In the meta class of the resource you can list either strings or ``Column`` objects under the ``columns`` property.
+String keys must always match a field of the model. ``Column`` keys however are free to have any values. ``Column``
+objects have the property ``key`` which is going to be used for model property or method lookup. This is very useful to
+send values of related models or computed values in the ``POST``.
 
 Let's say we have the following models:
 
@@ -46,18 +46,54 @@ following resource:
             resource_name = 'model-computed-example'
             model = SmartItem
             columns = (
-                Column('get_owner', 'Owner'),
+                Column(key='get_owner', value='Owner'),
                 'name', 'quantity', 'price',
-                Column('get_total_price', 'Total price')
+                Column(key='get_total_price', value='Total price')
             )
 
-First you have to import the ``Column`` model. ``Column`` objects are going to be mapped to the properties of model
-of the resource by their key (the first argument). So in this example when the resource iterates over the queryset
-it will get ``get_owner`` property of the model first, then ``name``, ``quantity``, ``prce`` fields of the model,
-then ``get_total_price`` property of the model at the end.
+First you have to import the ``Column`` model. ``Column`` objects are going to be mapped to properties or methods of the
+model of the resource by their key (``key`` argument). So in this example when the resource iterates over the queryset
+it will get ``get_owner`` **property** of the model first, then ``name``, ``quantity``, ``prce`` **fields** of the
+model, then ``get_total_price`` **property** of the model at the end. Those properties and methods that are invoked by
+the ``Columns`` are called *handlers*.
 
 We call these columns *virtual* meaning that you can't order by their values out of box (because the ORM can't handle
-it).
+it). You are allowed to create *non-virtual* columns too but then you must implement the sorting method of those
+objects.
 
-However the ``Column`` class is a Django model but it's never stored in the database unless you mark the resource to be
-stateful.
+However the ``Column`` class is a Django model but it's never stored anywhere unless you mark the resource to be
+*stateful*.
+
+Passing values to handlers
+--------------------------
+
+Sometimes it is useful to pass an object to a column handler e.g. when you want the model to access the ``User``
+instance (``request.user``)
+
+Let's modify the method ``SmartItem.get_total_price`` from the previous example.
+
+.. code-block:: python
+
+        def get_total_price(self, currency):
+            return self.quantity * self.price * currency
+
+It's quite trivial but let's say that you want to calculate the ``Item``'s total price based on the logged in user's
+currency settings. Note that the method is no longer decorated: you can't pass values to properties.
+
+To pass the value to the handler you have to override the ``get_rows`` method of the resource class
+``ModelComputedExampleResource``:
+
+.. code-block:: python
+
+        def get_rows(self, *args):
+            return super().get_rows(*args, currency=request.user.currency)
+
+Here you simply invoke the method from the parent class, pass all arguments and your own value as a keyword argument.
+Every handler method receives every passed keyword argument meaning that you have to decide in the handler itself which
+arguments you need. Use the ``**kwargs`` argument in this cases.
+
+.. note::
+
+    In the internal implementation when ``get_rows`` gets the model attribute it checks if it is a callable. If it's
+    true then it is invoked with all keyword arguments of ``get_rows``. Otherwise no other processing is made and the
+    value is stored in the row.
