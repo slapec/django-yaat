@@ -1,6 +1,6 @@
 # django-yaat
 
-[![Documentation Status](https://readthedocs.org/projects/django-yaat/badge/?version=latest)](https://readthedocs.org/projects/django-yaat/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/django-yaat/badge/?version=latest)](http://django-yaat.readthedocs.org/en/latest/)
 
 This is the [django-restify-framework](https://github.com/lovasb/django-restify) resource of the 
 [yaat](https://github.com/slapec/yaat) AngularJS module.
