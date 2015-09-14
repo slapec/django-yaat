@@ -36,7 +36,7 @@ class Column(OrderedModel):
         unique_together = ('resource', 'user', 'key')
 
     def __init__(self, *args, **kwargs):
-        self.value = kwargs.pop('value')
+        self.value = kwargs.pop('value', None)
         super().__init__(*args, **kwargs)
 
         if self.is_virtual:
@@ -55,6 +55,9 @@ class Column(OrderedModel):
             return '-' + self.key
 
     def flatten(self):
+        if self.value is None:
+            raise ValueError('Cannot flatten because self.value is None')
+
         data = {
             'key': self.key,
             'value': str(self.value)

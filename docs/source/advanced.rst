@@ -97,3 +97,19 @@ arguments you need. Use the ``**kwargs`` argument in this cases.
     In the internal implementation when ``get_rows`` gets the model attribute it checks if it is a callable. If it's
     true then it is invoked with all keyword arguments of ``get_rows``. Otherwise no other processing is made and the
     value is stored in the row.
+
+Stateful tables
+---------------
+
+It is possible to store column states in a persistent storage so you get back the same table when you reload the page.
+Only column-related things are stored (order, ordering and if it's hidden). Current page and limit are not.
+
+To make a resource stateful simply add the ``stateful`` to its meta class:
+
+.. code-block:: python
+
+        class Stateful(YaatModelResource):
+            class Meta:
+                stateful = True
+
+That's it. Any change is going to be saved in your database.

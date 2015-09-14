@@ -74,7 +74,7 @@ class YaatValidatorForm(forms.Form):
 
         return headers
 
-    def save(self):
+    def save(self, user):
         if self.columns == self.cleaned_data['headers']:
             return
 

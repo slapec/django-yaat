@@ -25,11 +25,12 @@ class ModelComputedExampleResource(YaatModelResource):
         )
 
 
-class ModelStatefulExample(YaatModelResource):
+class Stateful(YaatModelResource):
     class Meta:
-        resource_name = 'model-stateful-example'
+        resource_name = 'stateful'
         model = Item
         columns = ('name', 'quantity', 'price')
+        stateful = True
 
     def common(self, request, *args, **kwargs):
         usr, _ = User.objects.get_or_create(username='user')
