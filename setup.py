@@ -9,7 +9,7 @@ vcs_dependencies = [
 
 setup(
     name='django-yaat',
-    version='0.1.0',
+    version='1.0.0',
     packages=['yaat'],
     install_requires=['Django>=1.8.4', 'django-restify-framework==0.23', 'django-ordered-model'],
     dependency_links=vcs_dependencies,
@@ -18,5 +18,5 @@ setup(
     url='https://github.com/slapec/django-yaat',
     license='MIT',
     zip_safe=True,
-    install_requires = ['django-restify'],
+    install_requires=['django-restify'],
 )
