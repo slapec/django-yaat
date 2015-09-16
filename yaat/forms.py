@@ -86,3 +86,4 @@ class YaatValidatorForm(forms.Form):
             col = self.cleaned_data['headers'][0]
             Column.objects.filter(user_id=col.user_id, resource=col.resource).delete()
             Column.objects.bulk_create(self.cleaned_data['headers'])
+            Column.cached.bulk_create(self.cleaned_data['headers'])
