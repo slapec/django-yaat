@@ -1,9 +1,28 @@
 # coding: utf-8
-
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from ordered_model.models import OrderedModel
+
+
+class CachedManager(models.Manager):
+    KEY_TEMPLATE = '%d_%s_columns'
+
+    def filter(self, resource, user):
+        key = self.KEY_TEMPLATE % (user.pk, resource)
+
+        value = cache.get(key)
+
+        if value is None:
+            value = list(Column.objects.filter(resource=resource, user=user))
+            cache.set(key, value)
+
+        return value
+
+    def bulk_create(self, columns):
+        key = self.KEY_TEMPLATE % (columns[0].user_id, columns[0].resource)
+        value = cache.set(key, columns)
 
 
 class Column(OrderedModel):
@@ -32,6 +51,9 @@ class Column(OrderedModel):
 
     order_with_respect_to = ('resource', 'user')
 
+    objects = models.Manager()
+    cached = CachedManager()
+
     class Meta:
         unique_together = ('resource', 'user', 'key')
 
@@ -49,6 +71,9 @@ class Column(OrderedModel):
         return left == right
 
     def get_ordering(self):
+        if self.is_shown is False:
+            return None
+
         if self.ordering == self.ASC:
             return self.key
         elif self.ordering == self.DESC:

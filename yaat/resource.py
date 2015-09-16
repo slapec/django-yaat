@@ -14,12 +14,8 @@ from .models import Column
 
 class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourceMeta):
     def get_columns(self):
-        stateful_columns, columns = [], []
-        if self._meta.stateful and not isinstance(self.request.user, AnonymousUser):
-            stateful_columns = list(Column.objects.filter(resource=self._meta.resource_name, user=self.request.user)\
-                                                  .order_by('order'))
+        columns = []
 
-        mapper = {}
         for c in self._meta.columns:
             if isinstance(c, str):
                 field = self._meta.model._meta.get_field(c)
@@ -28,18 +24,26 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
                                 resource=self._meta.resource_name,
                                 is_virtual=False)
                 columns.append(column)
-                mapper[column.key] = len(columns)
             elif isinstance(c, Column):
                 c.resource = self._meta.resource_name
                 columns.append(c)
-                mapper[c.key] = len(columns)
             else:
                 raise TypeError('Column item is expected to be string or Column')
 
-        for col in stateful_columns:
-            col.value = columns[mapper[col.key] - 1].value
+        return columns
 
-        return stateful_columns or columns
+    def get_stateful_columns(self, columns):
+        retval = []
+
+        mapper = {columns[i].key: i for i in range(0, len(columns))}
+
+        if self._meta.stateful and not isinstance(self.request.user, AnonymousUser):
+            retval = Column.cached.filter(resource=self._meta.resource_name, user=self.request.user)
+
+        for col in retval:
+            col.value = columns[mapper[col.key]].value
+
+        return retval
 
     def get_queryset_order_keys(self, columns):
         keys = []
@@ -72,7 +76,9 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
 
     def post(self, request, *args, **kwargs):
         available_columns = self.get_columns()
-        form = YaatValidatorForm(request.POST, columns=available_columns)
+        stateful_columns = self.get_stateful_columns(available_columns)
+
+        form = YaatValidatorForm(request.POST, columns=stateful_columns or available_columns)
         if form.is_valid():
             queryset = self.get_queryset(form.cleaned_data['headers'])
             page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
