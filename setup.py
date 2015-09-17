@@ -9,7 +9,7 @@ vcs_dependencies = [
 
 setup(
     name='django-yaat',
-    version='1.1.0',
+    version='1.2.0',
     packages=['yaat'],
     install_requires=['Django>=1.8.4', 'django-restify-framework==0.23', 'django-ordered-model'],
     dependency_links=vcs_dependencies,

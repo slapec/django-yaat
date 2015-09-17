@@ -15,13 +15,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Column',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
-                ('order', models.PositiveIntegerField(db_index=True, editable=False)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
+                ('order', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('resource', models.CharField(max_length=64, verbose_name='Resource name')),
                 ('key', models.CharField(max_length=64, verbose_name='Column key')),
                 ('is_shown', models.NullBooleanField(verbose_name='Show field', default=True)),
-                ('ordering', models.PositiveSmallIntegerField(null=True, choices=[(None, 'Ordering disallowed'), (0, 'Unordered'), (1, 'Ascending'), (2, 'Descending')], verbose_name='Field order', default=0)),
-                ('user', models.ForeignKey(related_name='column_users', to=settings.AUTH_USER_MODEL, verbose_name='User')),
+                ('ordering', models.PositiveSmallIntegerField(choices=[(None, 'Ordering disallowed'), (0, 'Unordered'), (1, 'Ascending'), (2, 'Descending')], null=True, verbose_name='Field order', default=0)),
+                ('is_virtual', models.BooleanField(default=True)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, verbose_name='User', related_name='column_users')),
             ],
         ),
         migrations.AlterUniqueTogether(
