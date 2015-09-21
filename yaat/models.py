@@ -40,7 +40,7 @@ class Column(OrderedModel):
         (DESC, _('Descending'))
     )
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), related_name='column_users')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), related_name='columns')
 
     resource = models.CharField(max_length=64, verbose_name=_('Resource name'))
     key = models.CharField(max_length=64, verbose_name=_('Column key'))
