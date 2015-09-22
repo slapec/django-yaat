@@ -66,7 +66,7 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
         for obj in page:
             cells = []
             for col in cols:
-                if col.is_shown:
+                if col.is_shown != False:
                     value = getattr(obj, col.key)
                     if hasattr(value, '__call__'):
                         value = value(**kwargs)
