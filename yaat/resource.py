@@ -78,14 +78,17 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
         available_columns = self.get_columns()
         stateful_columns = self.get_stateful_columns(available_columns)
 
-        form = YaatValidatorForm(request.POST, columns=stateful_columns or available_columns)
+        form = YaatValidatorForm(request.POST,
+                                 request=request,
+                                 columns=stateful_columns or available_columns,
+                                 stateful_init=self._meta.stateful_init)
         if form.is_valid():
             queryset = self.get_queryset(form.cleaned_data['headers'])
             page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
             rows = self.get_rows(page, form.cleaned_data['headers'])
 
             if self._meta.stateful and not isinstance(request.user, AnonymousUser):
-                form.save(request.user)
+                form.save()
 
             return ApiResponse({'columns': form.cleaned_data['headers'],
                                 'rows': rows,

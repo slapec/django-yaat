@@ -1,0 +1,5 @@
+{% extends 'yaat_examples/base.html' %}
+
+{% block content %}
+    <yat api="{% url 'api:stateful-columns' %}" limit="10"></yat>
+{% endblock %}

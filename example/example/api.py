@@ -2,9 +2,10 @@
 
 from restify.api import Api
 
-from yaat_examples.api.resources import ModelExampleResource, ModelComputedExampleResource, Stateful
+from yaat_examples.api.resources import ModelExampleResource, ModelComputedExampleResource, StatefulColumns, StatefulInit
 
 api = Api(api_name='example')
 api.register(regex='model_example/$', resource=ModelExampleResource)
 api.register(regex='model_computed_example/$', resource=ModelComputedExampleResource)
-api.register(regex='stateful/$', resource=Stateful)
+api.register(regex='stateful_columns/$', resource=StatefulColumns)
+api.register(regex='stateful_init/$', resource=StatefulInit)
