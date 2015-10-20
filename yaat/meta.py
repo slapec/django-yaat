@@ -10,6 +10,8 @@ class YaatModelResourceOptions(ModelResourceOptions):
     columns = ()
     stateful = False
     stateful_init = False
+    limit = 25
+    limit_choices = [25]
 
 
 class YaatModelResourceMeta(ResourceMeta):

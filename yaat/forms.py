@@ -20,18 +20,22 @@ class HeadersField(forms.Field):
 
 
 class YaatValidatorForm(forms.Form):
-    limit = forms.IntegerField(min_value=0, initial=10)
+    limit = forms.ChoiceField()
     offset = forms.IntegerField(min_value=0, initial=1)
     headers = HeadersField(required=False)
 
-    def __init__(self, *args, request, columns, stateful_init, **kwargs):
+    def __init__(self, *args, request, columns, resource, **kwargs):
+        self.resource = resource
         self.request = request
         self.user = request.user
         self.columns = columns
-        self.stateful_init = stateful_init
+        self.stateful_init = self.resource._meta.stateful_init
         self._column_fields = {column.key: i for i, column in enumerate(self.columns)}
 
         super().__init__(*args, **kwargs)
+
+        self.fields['limit'].initial = self.resource._meta.limit
+        self.fields['limit'].choices = [(_, _) for _ in self.resource._meta.limit_choices]
 
     def _get_column(self, name):
         retval = deepcopy(self.columns[self._column_fields[name]])
@@ -56,25 +60,40 @@ class YaatValidatorForm(forms.Form):
             del self._errors['headers']
 
         if self.stateful_init:
+            session_key = self.session_key(self.resource)
             state = {
-                'limit': self.cleaned_data['limit'],
+                'limit': int(self.cleaned_data['limit']),
                 'offset': self.cleaned_data['offset']
             }
 
             if is_init:
-                # TODO: This is incomplete
-                session = self.request.session.get(self.session_key, state)
-                if session['limit'] == self.cleaned_data['limit']:
-                    self.cleaned_data['limit'] = session['limit']
-                    self.cleaned_data['offset'] = session['offset']
-                else:
-                    self.request.session[self.session_key] = state
-            else:
-                self.request.session[self.session_key] = state
+                state = self.request.session.get(session_key, state)
+                self.cleaned_data['limit'] = state['limit']
+                self.cleaned_data['offset'] = state['offset']
+            self.request.session[session_key] = state
 
-    @property
-    def session_key(self):
-        return 'yaat_init_state'
+    @classmethod
+    def limit_dict(cls, request, resource):
+        if resource._meta.stateful_init:
+            state = request.session.get(cls.session_key(resource), None)
+            if state:
+                limit = state['limit']
+            else:
+                limit = resource._meta.limit
+        else:
+            limit = resource._meta.limit
+
+        return {
+            'limit': limit,
+            'options': resource._meta.limit_choices
+        }
+
+    def invalidate_state(self):
+        self.request.session.pop(self.session_key(self.resource), None)
+
+    @staticmethod
+    def session_key(resource):
+        return 'yaat_init_state_' + resource._meta.resource_name
 
     def clean_headers(self):
         posted = self.cleaned_data['headers']

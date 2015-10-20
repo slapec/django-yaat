@@ -13,6 +13,8 @@ from .models import Column
 
 
 class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourceMeta):
+    VALIDATOR_FORM = YaatValidatorForm
+
     def get_columns(self):
         columns = []
 
@@ -74,14 +76,18 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
             rows.append({'id': obj.pk, 'values': cells})
         return rows
 
-    def post(self, request, *args, **kwargs):
+    def common(self, request, *args, **kwargs):
         available_columns = self.get_columns()
         stateful_columns = self.get_stateful_columns(available_columns)
 
-        form = YaatValidatorForm(request.POST,
-                                 request=request,
-                                 columns=stateful_columns or available_columns,
-                                 stateful_init=self._meta.stateful_init)
+        self.validator_form = self.VALIDATOR_FORM(
+            request.POST,
+            request=request,
+            columns=stateful_columns or available_columns,
+            resource=self)
+
+    def post(self, request, *args, **kwargs):
+        form = self.validator_form
         if form.is_valid():
             queryset = self.get_queryset(form.cleaned_data['headers'])
             page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
