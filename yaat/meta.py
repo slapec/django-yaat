@@ -11,7 +11,7 @@ class YaatModelResourceOptions(ModelResourceOptions):
     stateful = False
     stateful_init = False
     limit = 25
-    limit_choices = [25]
+    limit_choices = [limit]
 
 
 class YaatModelResourceMeta(ResourceMeta):
