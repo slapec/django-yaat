@@ -98,18 +98,35 @@ arguments you need. Use the ``**kwargs`` argument in this cases.
     true then it is invoked with all keyword arguments of ``get_rows``. Otherwise no other processing is made and the
     value is stored in the row.
 
-Stateful tables
----------------
+Stateful columns
+----------------
 
 It is possible to store column states in a persistent storage so you get back the same table when you reload the page.
 Only column-related things are stored (order, ordering and if it's hidden). Current page and limit are not.
 
-To make a resource stateful simply add the ``stateful`` to its meta class:
+To make a resource columns stateful simply add the ``stateful`` to its meta class:
 
 .. code-block:: python
 
-        class Stateful(YaatModelResource):
+        class StatefulColumns(YaatModelResource):
             class Meta:
                 stateful = True
 
 That's it. Any change is going to be saved in your database.
+
+Stateful table pages
+--------------------
+
+Django-yaat can store yaat's last ``limit`` and ``offset`` values in the authenticated user's session so you can
+send the exact same page every time the user arrives to the same table. This is useful for cases when the user
+navigates away and back to the same table often.
+
+Simply add the ``stateful_init`` to the meta class of the resource:
+
+.. code-block:: python
+
+        class StatefulInit(YaatModelResource):
+            class Meta:
+                stateful_init = True
+
+You can combine this with ``stateful`` of course.

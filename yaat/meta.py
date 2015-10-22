@@ -9,6 +9,9 @@ class YaatModelResourceOptions(ModelResourceOptions):
     serializer = DjangoSerializer
     columns = ()
     stateful = False
+    stateful_init = False
+    limit = None
+    limit_choices = [limit]
 
 
 class YaatModelResourceMeta(ResourceMeta):

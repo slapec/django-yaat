@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage
 from django.contrib.auth.models import AnonymousUser
 from restify.http import status
 from restify.http.response import ApiResponse
@@ -13,6 +13,8 @@ from .models import Column
 
 
 class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourceMeta):
+    VALIDATOR_FORM = YaatValidatorForm
+
     def get_columns(self):
         columns = []
 
@@ -74,18 +76,33 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
             rows.append({'id': obj.pk, 'values': cells})
         return rows
 
-    def post(self, request, *args, **kwargs):
+    def common(self, request, *args, **kwargs):
         available_columns = self.get_columns()
         stateful_columns = self.get_stateful_columns(available_columns)
 
-        form = YaatValidatorForm(request.POST, columns=stateful_columns or available_columns)
+        self.validator_form = self.VALIDATOR_FORM(
+            request.POST,
+            request=request,
+            columns=stateful_columns or available_columns,
+            resource=self)
+
+    def _compose(self, form):
+        queryset = self.get_queryset(form.cleaned_data['headers'])
+        page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
+        rows = self.get_rows(page, form.cleaned_data['headers'])
+        return page, rows
+
+    def post(self, request, *args, **kwargs):
+        form = self.validator_form
         if form.is_valid():
-            queryset = self.get_queryset(form.cleaned_data['headers'])
-            page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
-            rows = self.get_rows(page, form.cleaned_data['headers'])
+            try:
+                page, rows = self._compose(form)
+            except EmptyPage:
+                form.reset_offset()
+                page, rows = self._compose(form)
 
             if self._meta.stateful and not isinstance(request.user, AnonymousUser):
-                form.save(request.user)
+                form.save()
 
             return ApiResponse({'columns': form.cleaned_data['headers'],
                                 'rows': rows,

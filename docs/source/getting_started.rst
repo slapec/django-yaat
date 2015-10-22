@@ -82,6 +82,48 @@ namespace. This is why the ``resource_name`` property is required.
 The ``<yat>`` directive handles everything else for you. If you want to customize that too, head to the
 `yaat repository <https://github.com/slapec/yaat>`_.
 
+Limiting the resource
+=====================
+
+By default the resource accepts any positive integer as a limit. If you have hundreds of rows you should
+adjust the limit value and limit choices in your resource to avoid overloading your backend.
+
+To add a single value as a limit add the ``limit`` property to the meta class:
+
+.. code-block:: python
+
+    class Limited(YaatModelResource):
+        class Meta:
+            resource_name = 'limited'
+            model = Item
+            limit = 3
+            columns = ('name', 'quantity', 'price')
+
+Here the resource replies with 3 rows every time it is queried. The value of ``limit`` POSTed by yaat is completely
+ignored.
+
+Limit choices
+-------------
+
+There is also space in the resource if you're planning to create a table where the user can change the row limit.
+Simply add the ``limit_choices`` to the meta class. It should be a tuple or a list of single values (not like in Django
+where you must provide value pairs).
+
+.. code-block:: python
+
+    class LimitedChoices(YaatModelResource):
+        class Meta:
+            resource_name = 'limited'
+            model = Item
+            limit = 3
+            limit_choices = [3, 6, 9]
+            columns = ('name', 'quantity', 'price')
+
+.. note::
+
+    Yaat detects changing of the ``$limit`` model but it doesn't have any feature to change it on the UI. So there
+    is no example of this resource, but I promise it works :D!
+
 Working examples
 ================
 

@@ -3,15 +3,15 @@
 from setuptools import setup
 
 vcs_dependencies = [
-    # This is a special fork where order_with_respect_to can be a tuple
-    'git+https://github.com/lovasb/django-ordered-model.git#egg=django-ordered-model'
+    # order_with_respect_to can be a tuple in this fork
+    'git+https://github.com/yuvadm/django-ordered-model@b875b891b838b26547e1b767e30badc8f4a0331e#egg=django-ordered-model'
 ]
 
 setup(
     name='django-yaat',
-    version='1.3.2',
+    version='1.3.3',
     packages=['yaat'],
-    install_requires=['Django>=1.8.4', 'django-restify-framework==0.23', 'django-ordered-model'],
+    install_requires=['Django>=1.8.4', 'django-restify-framework>=0.24', 'django-ordered-model'],
     include_package_data=True,
     dependency_links=vcs_dependencies,
     description='The django-restify-framework resource of the yaat AngularJs module',

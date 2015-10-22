@@ -1,0 +1,137 @@
+[
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Cars",
+      "price": 120,
+      "quantity": 34
+    },
+    "pk": 1
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Bikes",
+      "price": 30,
+      "quantity": 60
+    },
+    "pk": 2
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Cats",
+      "price": 5,
+      "quantity": 12
+    },
+    "pk": 3
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Flowers",
+      "price": 1,
+      "quantity": 5
+    },
+    "pk": 4
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Apples",
+      "price": 2,
+      "quantity": 54
+    },
+    "pk": 5
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Cookies",
+      "price": 3,
+      "quantity": 100
+    },
+    "pk": 6
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Snacks",
+      "price": 2,
+      "quantity": 40
+    },
+    "pk": 7
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Dogs",
+      "price": 29,
+      "quantity": 12
+    },
+    "pk": 8
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Doughnuts",
+      "price": 3,
+      "quantity": 4
+    },
+    "pk": 9
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Burgers",
+      "price": 7,
+      "quantity": 10
+    },
+    "pk": 10
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Pens",
+      "price": 5,
+      "quantity": 31
+    },
+    "pk": 11
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Books",
+      "price": 15,
+      "quantity": 7
+    },
+    "pk": 12
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Bubbles",
+      "price": 1,
+      "quantity": 420
+    },
+    "pk": 13
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Planes",
+      "price": 1200,
+      "quantity": 2
+    },
+    "pk": 14
+  },
+  {
+    "model": "tests.item",
+    "fields": {
+      "name": "Ducks",
+      "price": 23,
+      "quantity": 18
+    },
+    "pk": 15
+  }
+]
