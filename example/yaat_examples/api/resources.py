@@ -38,6 +38,14 @@ class StatefulColumns(YaatModelResource):
         super().common(request, *args, **kwargs)
 
 
+class Limited(YaatModelResource):
+    class Meta:
+        resource_name = 'limited'
+        model = Item
+        limit = 3
+        columns = ('name', 'quantity', 'price')
+
+
 class StatefulInit(YaatModelResource):
     class Meta:
         resource_name = 'stateful-init'

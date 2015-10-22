@@ -34,8 +34,11 @@ class YaatValidatorForm(forms.Form):
 
         super().__init__(*args, **kwargs)
 
-        self.fields['limit'].initial = self.resource._meta.limit
-        self.fields['limit'].choices = [(_, _) for _ in self.resource._meta.limit_choices]
+        if self.resource._meta.limit is None:
+            self.fields['limit'] = forms.IntegerField(min_value=0, initial=10)
+        else:
+            self.fields['limit'].initial = self.resource._meta.limit
+            self.fields['limit'].choices = [(_, _) for _ in self.resource._meta.limit_choices]
 
     def _get_column(self, name):
         retval = deepcopy(self.columns[self._column_fields[name]])

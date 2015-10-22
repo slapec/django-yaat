@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from django import forms
 from django.test import TestCase
 
 from yaat.resource import YaatModelResource
@@ -44,26 +45,51 @@ class TestYaatValidationForm(TestCase):
         self.assertEqual(form.cleaned_data['limit'], form.fields['limit'].initial)
         self.assertEqual(form.cleaned_data['offset'], form.fields['offset'].initial)
 
-    def test_limit_from_resource(self):
-        LIMIT = 11
-        CHOICES = [1, 11, 123]
+    def test_limit_is_none(self):
+        request = generate_request()
+        columns = generate_columns()
 
+        post = {}
+        form = YaatValidatorForm(post, request=request, columns=columns, resource=YaatModelResource())
+        self.assertTrue(form.is_valid())
+        self.assertIsInstance(form.fields['limit'], forms.IntegerField)
+        self.assertEqual(form.cleaned_data['limit'], form.fields['limit'].initial)
+
+        post = {'limit': 99}
+        form = YaatValidatorForm(post, request=request, columns=columns, resource=YaatModelResource())
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['limit'], post['limit'])  # Any value is accepted as limit
+
+    def test_limit_from_resource(self):
         request = generate_request()
         columns = generate_columns()
 
         class Resource(YaatModelResource):
             class Meta:
                 resource_name = 'test'
-                limit = LIMIT
-                limit_choices = CHOICES
+                limit = 11
+                limit_choices = [1, limit, 123]
         resource = Resource()
 
         post = {}
         form = YaatValidatorForm(post, request=request, columns=columns, resource=resource)
-
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.fields['limit'].initial, LIMIT)
-        self.assertEqual(form.fields['limit'].choices, [(_, _) for _ in CHOICES])
+        self.assertIsInstance(form.fields['limit'], forms.ChoiceField)
+        self.assertEqual(form.fields['limit'].initial, Resource.Meta.limit)
+        self.assertEqual(form.fields['limit'].choices, [(_, _) for _ in Resource.Meta.limit_choices])
+        self.assertEqual(form.cleaned_data['limit'], Resource.Meta.limit)
+
+        post = {'limit': 1}  # It is a valid choice, form.cleaned_data['limit'] must be equal to this
+        form = YaatValidatorForm(post, request=request, columns=columns, resource=resource)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.fields['limit'].initial, Resource.Meta.limit)
+        self.assertEqual(form.cleaned_data['limit'], str(post['limit']))
+
+        post = {'limit': 9}  # It's an invalid choice so form.cleaned_data['limit'] must fallback to Resource.Meta.limit
+        form = YaatValidatorForm(post, request=request, columns=columns, resource=resource)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.fields['limit'].initial, Resource.Meta.limit)
+        self.assertEqual(form.cleaned_data['limit'], Resource.Meta.limit)
 
     def test_stateful_init(self):
         request = generate_request()
