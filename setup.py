@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from setuptools import setup
+from yaat import __version__
 
 vcs_dependencies = [
     # order_with_respect_to can be a tuple in this fork
@@ -9,7 +10,7 @@ vcs_dependencies = [
 
 setup(
     name='django-yaat',
-    version='1.3.3',
+    version=__version__,
     packages=['yaat'],
     install_requires=['Django>=1.8.4', 'django-restify-framework>=0.24', 'django-ordered-model'],
     include_package_data=True,
