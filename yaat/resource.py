@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage
 from django.contrib.auth.models import AnonymousUser
 from restify.http import status
 from restify.http.response import ApiResponse
@@ -86,12 +86,20 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
             columns=stateful_columns or available_columns,
             resource=self)
 
+    def _compose(self, form):
+        queryset = self.get_queryset(form.cleaned_data['headers'])
+        page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
+        rows = self.get_rows(page, form.cleaned_data['headers'])
+        return page, rows
+
     def post(self, request, *args, **kwargs):
         form = self.validator_form
         if form.is_valid():
-            queryset = self.get_queryset(form.cleaned_data['headers'])
-            page = self.get_page(queryset, form.cleaned_data['limit'], form.cleaned_data['offset'])
-            rows = self.get_rows(page, form.cleaned_data['headers'])
+            try:
+                page, rows = self._compose(form)
+            except EmptyPage:
+                form.reset_offset()
+                page, rows = self._compose(form)
 
             if self._meta.stateful and not isinstance(request.user, AnonymousUser):
                 form.save()

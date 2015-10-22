@@ -94,6 +94,15 @@ class YaatValidatorForm(forms.Form):
     def invalidate_state(self):
         self.request.session.pop(self.session_key(self.resource), None)
 
+    def reset_offset(self):
+        self.cleaned_data['offset'] = self.fields['offset'].initial
+        if self.stateful_init:
+            session_key = self.session_key(self.resource)
+            state = self.request.session.get(session_key, None)
+            if state:
+                state['offset'] = self.cleaned_data['offset']
+                self.request.session[session_key] = state
+
     @staticmethod
     def session_key(resource):
         return 'yaat_init_state_' + resource._meta.resource_name

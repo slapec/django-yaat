@@ -2,6 +2,7 @@
 
 from unittest import mock
 
+from django.db import models
 from django.test import RequestFactory
 
 from yaat.models import Column
