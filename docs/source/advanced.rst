@@ -114,6 +114,53 @@ To make a resource columns stateful simply add the ``stateful`` to its meta clas
 
 That's it. Any change is going to be saved in your database.
 
+Customizing the column foreign key
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Yaat's Column model has a foreign key to ``settings.AUTH_USER_MODEL`` by default. This is what you need in 99.9% of cases.
+However sometimes you may want the columns to be accessible from a different model (like from a related model of the User class).
+
+To adjust this set the ``settings.YAAT_FOREIGN_KEY`` key to a string. It is expected to be a dotted pair of the Django app
+and the Django model just like for ``AUTH_USER_MODEL``. See the
+`docs <https://docs.djangoproject.com/en/1.8/topics/auth/customizing/#substituting-a-custom-user-model>`_.
+
+After changing the foreign key you also have to set the ``settings.YAAT_REQUEST_ATTR`` setting because subclasses of
+``YaatModelResource`` depend on ``request.user`` which is likely not an instance of the new foreign key class anymore.
+This value is expected to be a single string. The attribute with the same name must exist in the ``request`` object.
+
+Real world example
+""""""""""""""""""
+
+Let's say we have 2 models, ``Customer`` and ``User`` in an N:M relation through an other model, ``Membership``, similar to
+the `Django example <https://docs.djangoproject.com/en/1.8/topics/db/models/#extra-fields-on-many-to-many-relationships>`_.
+
+Here the same user should have different column lists depending on which of its membership is active. This means that
+``columns`` should be a property of ``Membership`` instances. To achieve this set the setting:
+
+.. code-block:: python
+
+    YAAT_FOREIGN_KEY = 'myapp.Membership'
+
+(Assume ``Membership`` model is in the ``myapp`` Django application)
+
+Since ``Column.user`` is expected to point to a ``Membership`` instance, and ``request.user`` is still a ``User``, you
+have to add the active ``Membership`` object to each request. It's the easiest using a middleware. Say the ``Membership``
+is accessible through ``request.member`` then set the setting to this:
+
+.. code-block:: python
+
+    YAAT_REQUEST_ATTR = 'member'
+
+
+.. note::
+    Keep in mind that the name of the property ``Column.user`` stays the same if you override ``YAAT_FOREIGN_KEY``
+    but it points to a different type of object then.
+
+.. warning::
+
+    Changing ``YAAT_FOREIGN_KEY`` has a huge impact just like changing ``AUTH_USER_MODEL``. Be sure to set this value
+    as soon as possible.
+
 Stateful table pages
 --------------------
 

@@ -1,4 +1,5 @@
 # coding: utf-8
+
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
@@ -22,7 +23,7 @@ class CachedManager(models.Manager):
 
     def bulk_create(self, columns):
         key = self.KEY_TEMPLATE % (columns[0].user_id, columns[0].resource)
-        value = cache.set(key, columns)
+        cache.set(key, columns)
 
 
 class Column(OrderedModel):
@@ -40,7 +41,7 @@ class Column(OrderedModel):
         (DESC, _('Descending'))
     )
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), related_name='columns')
+    user = models.ForeignKey(getattr(settings, 'YAAT_FOREIGN_KEY', settings.AUTH_USER_MODEL), verbose_name=_('User'), related_name='columns')
 
     resource = models.CharField(max_length=64, verbose_name=_('Resource name'))
     key = models.CharField(max_length=64, verbose_name=_('Column key'))

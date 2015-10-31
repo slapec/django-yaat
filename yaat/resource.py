@@ -1,7 +1,8 @@
 # coding: utf-8
 
-from django.core.paginator import Paginator, EmptyPage
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.paginator import Paginator, EmptyPage
 from restify.http import status
 from restify.http.response import ApiResponse
 from restify.resource import Resource
@@ -40,7 +41,8 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
         mapper = {columns[i].key: i for i in range(0, len(columns))}
 
         if self._meta.stateful and not isinstance(self.request.user, AnonymousUser):
-            retval = Column.cached.filter(resource=self._meta.resource_name, user=self.request.user)
+            column_user = getattr(self.request, getattr(settings, 'YAAT_REQUEST_ATTR', 'user'))
+            retval = Column.cached.filter(resource=self._meta.resource_name, user=column_user)
 
         for col in retval:
             col.value = columns[mapper[col.key]].value
