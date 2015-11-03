@@ -2,7 +2,9 @@
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage
+from django.db.models.loading import get_model
 from restify.http import status
 from restify.http.response import ApiResponse
 from restify.resource import Resource
@@ -15,6 +17,15 @@ from .models import Column
 
 class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourceMeta):
     VALIDATOR_FORM = YaatValidatorForm
+
+    @classmethod
+    def invalidate_column_cache(cls, user):
+        user_class = get_model(getattr(settings, 'YAAT_FOREIGN_KEY', settings.AUTH_USER_MODEL))
+        if not isinstance(user, user_class):
+            raise TypeError('expected {0!r} received {1!r} instead'.format(user_class, user.__class__))
+
+        key = Column.cached.KEY_TEMPLATE % (user.pk, cls._meta.resource_name)
+        cache.delete(key)
 
     def get_columns(self):
         columns = []

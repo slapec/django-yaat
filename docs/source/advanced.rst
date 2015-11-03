@@ -132,7 +132,8 @@ Real world example
 """"""""""""""""""
 
 Let's say we have 2 models, ``Customer`` and ``User`` in an N:M relation through an other model, ``Membership``, similar to
-the `Django example <https://docs.djangoproject.com/en/1.8/topics/db/models/#extra-fields-on-many-to-many-relationships>`_.
+the `Django example <https://docs.djangoproject.com/en/1.8/topics/db/models/#extra-fields-on-many-to-many-relationships>`_
+example.
 
 Here the same user should have different column lists depending on which of its membership is active. This means that
 ``columns`` should be a property of ``Membership`` instances. To achieve this set the setting:
@@ -159,7 +160,8 @@ is accessible through ``request.member`` then set the setting to this:
 .. warning::
 
     Changing ``YAAT_FOREIGN_KEY`` has a huge impact just like changing ``AUTH_USER_MODEL``. Be sure to set this value
-    as soon as possible.
+    before applying your migrations the very first time. If you set this value later the real foreign key in your
+    database will still point to the old table.
 
 Stateful table pages
 --------------------
@@ -177,3 +179,29 @@ Simply add the ``stateful_init`` to the meta class of the resource:
                 stateful_init = True
 
 You can combine this with ``stateful`` of course.
+
+
+Utility methods
+---------------
+
+There are a few utility methods that may help you in some rare cases.
+
+.. py:class:: YaatModelResource
+
+    .. py:classmethod:: invalidate_column_cache(user)
+
+        This method forces to invalidate the given user's ``Column``. This can help you
+        if you add a new ``Column`` object on the fly and you want to show it immediately.
+
+        Argument ``user`` is expected to be an instance of ``AUTH_USER_MODEL`` class or
+        ``YAAT_FOREIGN_KEY`` class if that's specified.
+
+.. py:class:: YaatValidatorForm
+
+    .. py:method:: invalidate_state()
+
+        Every ``YaatModelResource`` (and its subclasses) gets the attribute ``self.validator_form`` when
+        the ``YaatModelResource.common(request, *args, **kwargs)`` method is invoked. This form is used
+        for validating the received data during paging but also for creating the initial data. If you
+        set the resource meta to ``stateful_init = True`` the form keeps its last received data as the
+        initialization state. If you'd like to drop this state call this method.
