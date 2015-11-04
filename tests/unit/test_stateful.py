@@ -1,8 +1,10 @@
 # coding: utf-8
 
 from copy import deepcopy
+from unittest import mock
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import TestCase
 
 from ..utils import generate_columns, generate_request
@@ -68,3 +70,26 @@ class YaatStatefulTest(TestCase):
         self.assertNotEquals(form.columns, form.cleaned_data['headers'])
         self.assertEqual(Column.objects.filter(user=self.user).count(), 3)
         self.assertEqual(Column.objects.count(), 4)
+
+    def test_invalidate_column_cache(self):
+        class Resource(YaatModelResource):
+            class Meta:
+                resource_name = 'test_resource'
+
+        request = generate_request(user=self.user)
+        columns = generate_columns(user=self.user)
+
+        post = {
+            'limit': 1,
+            'headers': [
+                {'key': 'first', 'hidden': False, 'order': Column.ASC},
+            ]
+        }
+        form = YaatValidatorForm(post, request=request, columns=columns, resource=Resource())
+        self.assertEqual(form.is_valid(), True)
+
+        form.save()
+
+        self.assertEqual(len(cache.get(Column.cached.KEY_TEMPLATE % (self.user.pk, Resource.Meta.resource_name))), 1)
+        Resource.invalidate_column_cache(self.user)
+        self.assertIsNone(cache.get(Column.cached.KEY_TEMPLATE % (self.user.pk, Resource.Meta.resource_name)))

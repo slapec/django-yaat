@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from yaat.resource import YaatModelResource
 from yaat.forms import YaatValidatorForm
-from .utils import generate_columns, generate_request, StatefulResource
+from tests.utils import generate_columns, generate_request, StatefulResource
 
 
 class TestYaatValidationForm(TestCase):

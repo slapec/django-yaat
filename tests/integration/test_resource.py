@@ -45,3 +45,4 @@ class TestYaatModelResource(RestifyTestCase):
             request.session[YaatValidatorForm.session_key(self.RESOURCE)]['offset'],
             YaatValidatorForm.base_fields['offset'].initial
         )
+
