@@ -1,4 +1,5 @@
 Django>=1.8.4
+
 django-restify-framework>=0.24
 # order_with_respect_to can be a tuple in this fork
 -e git+https://github.com/yuvadm/django-ordered-model@b875b891b838b26547e1b767e30badc8f4a0331e#egg=django-ordered-model

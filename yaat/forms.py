@@ -1,9 +1,11 @@
 # coding: utf-8
+
 import json
 import six
 from copy import deepcopy
 
 from django import forms
+from django.conf import settings
 from django.db import transaction
 
 from yaat.models import Column
@@ -27,7 +29,7 @@ class YaatValidatorForm(forms.Form):
     def __init__(self, *args, request, columns, resource, **kwargs):
         self.resource = resource
         self.request = request
-        self.user = request.user
+        self.user = getattr(self.request, getattr(settings, 'YAAT_REQUEST_ATTR', 'user'))
         self.columns = columns
         self.stateful_init = self.resource._meta.stateful_init
         self._column_fields = {column.key: i for i, column in enumerate(self.columns)}
