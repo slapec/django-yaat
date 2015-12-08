@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage
-from django.db.models.loading import get_model
+from django.apps import apps
 from restify.http import status
 from restify.http.response import ApiResponse
 from restify.resource import Resource
@@ -20,7 +20,7 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
 
     @classmethod
     def invalidate_column_cache(cls, user):
-        user_class = get_model(getattr(settings, 'YAAT_FOREIGN_KEY', settings.AUTH_USER_MODEL))
+        user_class = apps.get_model(getattr(settings, 'YAAT_FOREIGN_KEY', settings.AUTH_USER_MODEL))
         if not isinstance(user, user_class):
             raise TypeError('expected {0!r} received {1!r} instead'.format(user_class, user.__class__))
 
