@@ -17,7 +17,7 @@ one.
         quantity = models.PositiveIntegerField()
         price = models.PositiveIntegerField()
 
-Also import ``YaatModelResource`` and subclass it. The model class (and some other attributes) is listed in a class
+Also import ``YaatModelResource`` and subclass it. The `Item` class (and some other attributes) is listed in a class
 called ``Meta`` **inside** the resource class. You're might already be familiar with this method because Django uses it
 too.
 
@@ -38,7 +38,7 @@ Column list is always required (like Django forms require to specify either ``fi
 list any names that are fields of the ``Item`` model (listed in ``Item._meta.fields``) or you can add ``Column`` objects
 too.
 
-That's it, the resource is ready. Now you have to register it as a restify-framework API endopoint.
+That's it, the resource is ready. Now you have to register it as a restify-framework API endpoint.
 
 .. note::
 

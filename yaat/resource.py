@@ -76,6 +76,9 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
         paginator = Paginator(qs, limit)
         return paginator.page(page_number)
 
+    def row_hook(self, row):
+        return row
+
     def get_rows(self, page, cols, **kwargs):
         rows = []
         for obj in page:
@@ -86,7 +89,7 @@ class YaatModelResource(Resource, ModelResourceMixin, metaclass=YaatModelResourc
                     if hasattr(value, '__call__'):
                         value = value(**kwargs)
                     cells.append(value)
-            rows.append({'id': obj.pk, 'values': cells})
+            rows.append(self.row_hook({'id': obj.pk, 'values': cells}))
         return rows
 
     def common(self, request, *args, **kwargs):

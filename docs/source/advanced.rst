@@ -74,8 +74,8 @@ Let's modify the method ``SmartItem.get_total_price`` from the previous example.
 
 .. code-block:: python
 
-        def get_total_price(self, currency):
-            return self.quantity * self.price * currency
+    def get_total_price(self, currency):
+        return self.quantity * self.price * currency
 
 It's quite trivial but let's say that you want to calculate the ``Item``'s total price based on the logged in user's
 currency settings. Note that the method is no longer decorated: you can't pass values to properties.
@@ -85,8 +85,8 @@ To pass the value to the handler you have to override the ``get_rows`` method of
 
 .. code-block:: python
 
-        def get_rows(self, *args):
-            return super().get_rows(*args, currency=request.user.currency)
+    def get_rows(self, *args):
+        return super().get_rows(*args, currency=request.user.currency)
 
 Here you simply invoke the method from the parent class, pass all arguments and your own value as a keyword argument.
 Every handler method receives every passed keyword argument meaning that you have to decide in the handler itself which
@@ -98,6 +98,56 @@ arguments you need. Use the ``**kwargs`` argument in this cases.
     true then it is invoked with all keyword arguments of ``get_rows``. Otherwise no other processing is made and the
     value is stored in the row.
 
+Modifying the row dict
+----------------------
+
+In every page each row is described with the following dict structure:
+
+.. code-block:: python
+
+    {'id': obj.pk, 'values': cells}
+
+``obj.pk`` is the primary key of the object, and ``cells`` is a ``list`` containing the cells of the
+given row. This is what yaat expects from you.
+
+If you want to modify this dict (to define a row property) you can do that by overriding the ``row_hook()`` in your
+resource like this:
+
+.. code-block:: python
+
+    from yaat.resource import YaatModelResource
+
+    class ModelExampleResource(YaatModelResource):
+        class Meta:
+            resource_name = 'model-example'
+            model = Item
+            columns = ('name', 'quantity', 'price')
+
+        def row_hook(self, row):
+            row = super().row_hook(row)
+            row['is_active'] = True
+            return row
+
+.. warning::
+
+    Do not modify or remove the ``'id'`` and ``'values'`` keys or the the rendered table will not work at all.
+
+
+Modifying the table
+-------------------
+
+Modifying the whole table is not possible in the resource itself but in a custom serializer class.
+
+By default ``YaatModelResource`` classes use the ``restify.serializers.DjangoSerializer`` serializer.
+
+You should subclass that, override the ``flatten()`` method, and there you can access the ``dict``
+describing the required table page. Please don't remove or modify existing keys and values because
+that may make the rendering fail on the client.
+
+However it's a good place to add properties to the whole table e. g. server time. You can access non-yaat
+data described in `yaat docs <https://github.com/slapec/yaat/#sending-and-accessing-non-yaat-data>`_.
+
+
 Stateful columns
 ----------------
 
@@ -108,9 +158,9 @@ To make a resource columns stateful simply add the ``stateful`` to its meta clas
 
 .. code-block:: python
 
-        class StatefulColumns(YaatModelResource):
-            class Meta:
-                stateful = True
+    class StatefulColumns(YaatModelResource):
+        class Meta:
+            stateful = True
 
 That's it. Any change is going to be saved in your database.
 
