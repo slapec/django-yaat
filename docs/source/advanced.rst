@@ -107,7 +107,7 @@ In every page each row is described with the following dict structure:
 
     {'id': obj.pk, 'values': cells}
 
-``obj.pk`` is the primary key of the object, and ``cells`` is a ``list`` containing the cells of the
+Here ``obj.pk`` is the primary key of the object and ``cells`` is a ``list`` containing the cells of the
 given row. This is what yaat expects from you.
 
 If you want to modify this dict (to define a row property) you can do that by overriding the ``row_hook()`` in your
@@ -123,10 +123,12 @@ resource like this:
             model = Item
             columns = ('name', 'quantity', 'price')
 
-        def row_hook(self, row):
+        def row_hook(self, row, obj):
             row = super().row_hook(row)
-            row['is_active'] = True
+            row['is_active'] = obj.is_active
             return row
+
+If you need more complex modification you have to override ``get_rows()``.
 
 .. warning::
 
