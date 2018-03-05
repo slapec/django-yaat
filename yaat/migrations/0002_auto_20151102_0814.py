@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='column',
             name='user',
-            field=models.ForeignKey(to=getattr(settings, 'YAAT_FOREIGN_KEY', settings.AUTH_USER_MODEL), verbose_name='User', related_name='columns'),
+            field=models.ForeignKey(to=getattr(settings, 'YAAT_FOREIGN_KEY', settings.AUTH_USER_MODEL), verbose_name='User', related_name='columns', on_delete=models.CASCADE),
         ),
     ]

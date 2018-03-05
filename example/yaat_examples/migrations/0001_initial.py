@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=64)),
                 ('quantity', models.PositiveIntegerField()),
                 ('price', models.PositiveIntegerField()),
-                ('owner', models.ForeignKey(to='yaat_examples.Owner')),
+                ('owner', models.ForeignKey(to='yaat_examples.Owner', on_delete=models.CASCADE)),
             ],
         ),
     ]
