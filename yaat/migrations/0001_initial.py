@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('is_shown', models.NullBooleanField(verbose_name='Show field', default=True)),
                 ('ordering', models.PositiveSmallIntegerField(choices=[(None, 'Ordering disallowed'), (0, 'Unordered'), (1, 'Ascending'), (2, 'Descending')], null=True, verbose_name='Field order', default=0)),
                 ('is_virtual', models.BooleanField(default=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, verbose_name='User', related_name='column_users')),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, verbose_name='User', related_name='column_users', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

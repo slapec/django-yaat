@@ -14,7 +14,7 @@ class Owner(models.Model):
 
 
 class SmartItem(models.Model):
-    owner = models.ForeignKey(Owner)
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE)
     name = models.CharField(max_length=64)
     quantity = models.PositiveIntegerField()
     price = models.PositiveIntegerField()
